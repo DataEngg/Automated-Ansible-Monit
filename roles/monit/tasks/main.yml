@@ -1,0 +1,20 @@
+- name: Install epel-release
+  yum: name={{ item }} state=present
+  with_items:
+     - epel-release
+     - monit
+  register: epelupdate_monit
+
+- name: Create directory for monit in lib
+  when: epelupdate_monit|success
+  file: path=/var/lib/monit state=directory owner=root group=root
+  register: directory
+
+- name: Add Monitrc
+  when: directory|success
+  template: src=monit.yml.j2 dest=/etc/monitrc owner=root group=root
+  register: copied
+
+- name: Starting Monit
+  when: copied|success
+  shell: monit
